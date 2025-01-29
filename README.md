@@ -121,7 +121,7 @@ output = json
 
 - Don't be afraid to `rm ~/.aws/sso/cache*.json` if you're seeing weird behavior 
 
-- The CLI uses a hex-encoded SHA1 hash of the sso_start_url to determine the file names in ~/.aws/sso/cache/*.json
+- The CLI uses a hex-encoded SHA1 hash of the sso_start_url to determine the file names in `~/.aws/sso/cache/*.json`
   - [Source](https://github.com/aws/aws-sdk-go-v2/blob/d7a7f5a021d5f64882fc1e219bd12725d9b75d41/credentials/ssocreds/sso_cached_token.go#L21-L41)
 
 - I really like the [AWS SSO Containers](https://addons.mozilla.org/en-US/firefox/addon/aws-sso-containers/) Firefox extension for logging into multiple AWS accounts through Identity Center.
