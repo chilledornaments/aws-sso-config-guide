@@ -75,7 +75,7 @@ All AWS SDKs use the same [credential provider chain](https://docs.aws.amazon.co
 
 For local development, rely on the `AWS_PROFILE` environment variable. This in conjunction with SSO sessions makes it extremely simple to authenticate to AWS and change roles. Avoid setting environment variables for access keys as much as possible.
 
-For developing with Docker, mount your user’s `~/.aws` directory into the container user’s home path. For example: `docker run -e AWS_PROFILE=dev-developers --rm -it -v ~/.aws:/root/.aws amazon/aws-cli` 
+For developing with Docker, mount your user’s `~/.aws` directory into the container user’s home path. For example: `docker run -e AWS_PROFILE=xyz-admin --rm -it -v ~/.aws:/root/.aws amazon/aws-cli` 
 
 Applications rely entirely on the credential provider chain to retrieve credentials. Doing so allows this code to work anywhere:
 
