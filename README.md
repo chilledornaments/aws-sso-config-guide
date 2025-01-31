@@ -11,13 +11,16 @@ Take the suggestions in this guide as just that: suggestions. If a different app
 
 An AWS config file is built with `sso-session` settings and `profile` settings. By default, this file is found at `$HOME/.aws/config`.
 
-Profiles and Sessions have a many-to-one relationship: many profiles can reference one SSO session. Version 2.9.0 of the AWS CLI introduced [SSO token provider configurations](https://docs.aws.amazon.com/sdkref/latest/guide/feature-sso-credentials.html#sso-token-config). Make sure you're using at least this version.
+Profiles and Sessions have a many-to-one relationship: many profiles can reference one `sso-session`. Version 2.9.0 of the AWS CLI introduced [SSO token provider configurations](https://docs.aws.amazon.com/sdkref/latest/guide/feature-sso-credentials.html#sso-token-config). Make sure you're using at least this version.
 
-An SSO Session defines how you authenticate to AWS. The required parameters are `sso_start_url`, `sso_region`, `sso_registration_scopes`. You can find these settings in the AWS SSO portal by clicking on “Access keys” next to any role to which you have access.
+An `sso-session` defines how you authenticate to AWS. The required parameters are `sso_start_url`, `sso_region`, `sso_registration_scopes`. You can find these settings in the AWS SSO portal by clicking on “Access keys” next to any role to which you have access.
+
 
 ![step0.png](img/config/step0.png)
 
+
 ![step1.png](img/config/step1.png)
+
 
 At the time of this writing, the `sso_registration_scopes` will always be `sso:account:access`. 
 
@@ -25,13 +28,16 @@ You can either create an `sso-session` manually or run `aws configure sso` in yo
 
 If you want to create the `sso-session` manually, you can find an example (that you probably don't need) later in this section. 
 
-After you've defined an `sso-session`, you should create a shell alias for authenticating to AWS. Below is an example shell function to log into an SSO Session named “main”:
+After you've defined an `sso-session`, you should create a shell alias for authenticating to AWS. Below is an example shell function to log into an `sso-session` named “main”:
+
 
 ```shell
 awssso(){aws sso login --sso-session main}
 ```
 
+
 And here is the corresponding `sso-session` configuration:
+
 
 ```ini
 [sso-session main]
@@ -46,10 +52,13 @@ Profiles define which role is used to access which account. At a minimum, a `pro
 
 As with an `sso-session`, you can either create a `profile` manually or with the CLI using `aws configure sso --profile <name>`. Personally I prefer to create a `profile` manually because it's faster to `y6y` and `p` in vim than running through `aws configure sso --profile`. Do whatever you find easiest though.
 
+
 > [!IMPORTANT]
 > The `sso_region` in your `sso-session` may be different from the `region` you set in a profile
 
+
 Here's an example profile that uses the "main" `sso-session`:
+
 
 ```ini
 [profile xyz-admin]
@@ -60,19 +69,25 @@ region = us-east-2
 output = json
 ```
 
+
 Note that you can technically log into an `sso-session` with `aws sso login --profile <profile that uses an sso-session>` (e.g. `--profile xyz-admin`). This has the same effect as `aws sso login --sso-session <sso-session name>`. I recommend using `aws sso login --sso-session <sso-session name>` simply because it's more explicit in what it does. 
+
 
 > [!TIP]
 > `aws sso login --profile <name>` does _not_ set the AWS_PROFILE environment variable for you, you still need to tell the CLI/SDK which profile to use
 
+
 Some settings, such as `region` and `output` are often the same between profiles. Unfortunately, you cannot just stuff these into the default `profile`. You can declare these settings in each profile, or you can use environment variables to set-and-forget these. For example, you can add these settings to your shell’s rc file:
+
 
 ```shell
 export AWS_DEFAULT_OUTPUT=json
 export AWS_REGION=us-east-1
 ```
 
-If you need to change the region on the file, simply `export AWS_REGION=<other region>`. I generally recommend against creating a `profile` per region as the `AWS_REGION` environment variable serves the same purpose. 
+
+If you need to change the region you're interacting with, simply `export AWS_REGION=<other region>`. I generally recommend against creating a `profile` per region as the `AWS_REGION` environment variable serves the same purpose. However, it's helpful to set the `region` for a profile to whichever one you interact with most using that profile.
+
 
 >[!IMPORTANT]
 > boto3 uses `AWS_DEFAULT_REGION`, not `AWS_REGION`. See [this comment](https://github.com/boto/boto3/issues/3620#issuecomment-1462661383) for more info.
@@ -98,6 +113,7 @@ One of the first things I do in the morning is run `awssso` in my terminal and a
 Once you've logged into AWS via `aws sso login --sso-session <sso-session name>` (or an alias for this if you've followed this guide), changing profiles is as simple as `export AWS_PROFILE=bar`. If using the CLI, you can also pass the `--profile` option, e.g. `--profile bar`. That said, I suggest making a habit of using the `AWS_PROFILE` environment variable because it's portable between the CLI and SDKs, whereas `--profile` is specific to the CLI. 
 
 Given the below profile, you can `export AWS_PROFILE=xyz-admin` and `export AWS_PROFILE=abc-read`.
+
 
 ```ini
 [sso-session main]
@@ -130,12 +146,14 @@ For developing with Docker, mount your user’s `~/.aws` directory into the cont
 
 Applications rely entirely on the credential provider chain to retrieve credentials. Doing so allows this code to work anywhere:
 
+
 ```python
 import boto3
 
 s3_client = boto3.client('s3')
 buckets = s3_client.list_buckets()
 ```
+
 
 Even if you're forced to use long-lived IAM user credentials, export the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables rather than passing them into the `boto3.client()` call. This keeps your code leaner and more portable. 
 
@@ -145,6 +163,7 @@ One important caveat: when using an assumed role to perform operations, you’ll
 
 You can run `aws configure list` to see information about your current configuration (thanks [Tucker](https://github.com/TuckerWarlock)!). Example:
 
+
 ```shell
 $ aws configure  list
       Name                    Value             Type    Location
@@ -152,6 +171,7 @@ $ aws configure  list
    profile                    abc-read           env    ['AWS_PROFILE', 'AWS_DEFAULT_PROFILE']
 
 ```
+
 
 Don't be afraid to `rm ~/.aws/sso/cache/*.json` if you're seeing weird behavior. These files are JWTs used to retrieve temporary credentials ([source](https://repost.aws/knowledge-center/sso-temporary-credentials)).
 
