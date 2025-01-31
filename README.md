@@ -92,6 +92,9 @@ Documentation on environment variables used to configure the CLI and SDKs can be
 
 ## Using profiles
 
+One of the first things I do in the morning is run `awssso` in my terminal and authenticate against AWS. Depending on how long the [session duration from the identity provider configuration](https://docs.aws.amazon.com/singlesignon/latest/userguide/configure-user-session.html) is, you may have to reauthenticate a few times during the day. The [session duration](https://docs.aws.amazon.com/singlesignon/latest/userguide/howtosessionduration.html) for a permission set shouldn't give you any headaches, this is more for the console.
+
+
 Once you've logged into AWS via `aws sso login --sso-session <sso-session name>` (or an alias for this if you've followed this guide), changing profiles is as simple as `export AWS_PROFILE=bar`. If using the CLI, you can also pass the `--profile` option, e.g. `--profile bar`. That said, I suggest making a habit of using the `AWS_PROFILE` environment variable because it's portable between the CLI and SDKs, whereas `--profile` is specific to the CLI. 
 
 Given the below profile, you can `export AWS_PROFILE=xyz-admin` and `export AWS_PROFILE=abc-read`.
@@ -118,8 +121,6 @@ output = json
 ```
 
 ## Interacting with AWS
-
-One of the first things I do in the morning is run `awssso` in my terminal and authenticate against AWS. Depending on how long the [session duration from the identity provider configuration](https://docs.aws.amazon.com/singlesignon/latest/userguide/configure-user-session.html) is, you may have to reauthenticate a few times during the day. The [session duration](https://docs.aws.amazon.com/singlesignon/latest/userguide/howtosessionduration.html) for a permission set shouldn't give you any headaches, this is more for the console.
 
 All AWS SDKs use the same [credential provider chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html), meaning they load credentials from the same places in the same order. The credential provider chain makes it extremely simple to run the same code locally and in various AWS services without having to alter application code or configuration files. If you find either one of these processes has much friction, you’re likely doing something wrong.
 
