@@ -60,6 +60,11 @@ region = us-east-2
 output = json
 ```
 
+Note that you can technically log into an `sso-session` with `aws sso login --profile <profile that uses an sso-session>` (e.g. `--profile xyz-admin`). This has the same effect as `aws sso login --sso-session <sso-session name>`. I recommend using `aws sso login --sso-session <sso-session name>` simply because it's more explicit in what it does. 
+
+> [!TIP]
+> `aws sso login --profile <name>` does _not_ set the AWS_PROFILE environment variable for you, you still need to tell the CLI/SDK which profile to use
+
 Some settings, such as `region` and `output` are often the same between profiles. Unfortunately, you cannot just stuff these into the default `profile`. You can declare these settings in each profile, or you can use environment variables to set-and-forget these. For example, you can add these settings to your shell’s rc file:
 
 ```shell
@@ -67,10 +72,11 @@ export AWS_DEFAULT_OUTPUT=json
 export AWS_REGION=us-east-1
 ```
 
-If you need to change the region on the file, simply `export AWS_REGION=<other region>`
+If you need to change the region on the file, simply `export AWS_REGION=<other region>`. I generally recommend against creating a `profile` per region as the `AWS_REGION` environment variable serves the same purpose. 
 
 >[!IMPORTANT]
 > boto3 uses `AWS_DEFAULT_REGION`, not `AWS_REGION`. See [this comment](https://github.com/boto/boto3/issues/3620#issuecomment-1462661383) for more info.
+
 
 ## Other Resources
 A high level overview of AWS STS can be found [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html). **Read this**.
@@ -81,32 +87,12 @@ Documentation on configuring the CLI to work with Identity Center can be found [
 
 Documentation on environment variables used to configure the CLI and SDKs can be found [here](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html). This is worth a read if you're going to spend any significant time working with the CLI.
 
-# Interacting with AWS
 
-One of the first things I do in the morning is run `awssso` in my terminal and authenticate against AWS. Depending on how long the [session duration from the identity provider configuration](https://docs.aws.amazon.com/singlesignon/latest/userguide/configure-user-session.html) is, you may have to reauthenticate a few times during the day. The [session duration](https://docs.aws.amazon.com/singlesignon/latest/userguide/howtosessionduration.html) for a permission set shouldn't give you any headaches, this is more for the console.
+# Using your config
 
-All AWS SDKs use the same [credential provider chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html), meaning they load credentials from the same places in the same order. The credential provider chain makes it extremely simple to run the same code locally and in various AWS services without having to alter application code or configuration files. If you find either one of these processes has much friction, you’re likely doing something wrong.
+## Using profiles
 
-For local development, rely on the `AWS_PROFILE` environment variable. This in conjunction with SSO sessions makes it extremely simple to authenticate to AWS and change roles. Avoid setting environment variables for access keys as much as possible.
-
-For developing with Docker, mount your user’s `~/.aws` directory into the container user’s home path. For example: `docker run -e AWS_PROFILE=xyz-admin --rm -it -v ~/.aws:/root/.aws amazon/aws-cli` 
-
-Applications rely entirely on the credential provider chain to retrieve credentials. Doing so allows this code to work anywhere:
-
-```python
-import boto3
-
-s3_client = boto3.client('s3')
-buckets = s3_client.list_buckets()
-```
-
-Even if you're forced to use long-lived IAM user credentials, export the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables rather than passing them into the `boto3.client()` call. This keeps your code leaner and more portable. 
-
-One important caveat: when using an assumed role to perform operations, you’ll need to code the solution differently. That’s outside the scope of this document.
-
-## Switching profiles
-
-Once you've logged into AWS via `aws sso login --sso-session <session name>` (or an alias for this if you've followed this guide), changing profiles is as simple as `export AWS_PROFILE=bar`. If using the CLI, you can also pass the `--profile` option, e.g. `--profile bar`. That said, I suggest making a habit of using the `AWS_PROFILE` environment variable because it's portable between the CLI and SDKs, whereas `--profile` is specific to the CLI.
+Once you've logged into AWS via `aws sso login --sso-session <sso-session name>` (or an alias for this if you've followed this guide), changing profiles is as simple as `export AWS_PROFILE=bar`. If using the CLI, you can also pass the `--profile` option, e.g. `--profile bar`. That said, I suggest making a habit of using the `AWS_PROFILE` environment variable because it's portable between the CLI and SDKs, whereas `--profile` is specific to the CLI. 
 
 Given the below profile, you can `export AWS_PROFILE=xyz-admin` and `export AWS_PROFILE=abc-read`.
 
@@ -131,6 +117,29 @@ region = us-east-2
 output = json
 ```
 
+## Interacting with AWS
+
+One of the first things I do in the morning is run `awssso` in my terminal and authenticate against AWS. Depending on how long the [session duration from the identity provider configuration](https://docs.aws.amazon.com/singlesignon/latest/userguide/configure-user-session.html) is, you may have to reauthenticate a few times during the day. The [session duration](https://docs.aws.amazon.com/singlesignon/latest/userguide/howtosessionduration.html) for a permission set shouldn't give you any headaches, this is more for the console.
+
+All AWS SDKs use the same [credential provider chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html), meaning they load credentials from the same places in the same order. The credential provider chain makes it extremely simple to run the same code locally and in various AWS services without having to alter application code or configuration files. If you find either one of these processes has much friction, you’re likely doing something wrong.
+
+For local development, rely on the `AWS_PROFILE` environment variable. This in conjunction with SSO sessions makes it extremely simple to authenticate to AWS and change roles. Avoid setting environment variables for access keys as much as possible.
+
+For developing with Docker, mount your user’s `~/.aws` directory into the container user’s home path. For example: `docker run -e AWS_PROFILE=xyz-admin --rm -it -v ~/.aws:/root/.aws amazon/aws-cli` 
+
+Applications rely entirely on the credential provider chain to retrieve credentials. Doing so allows this code to work anywhere:
+
+```python
+import boto3
+
+s3_client = boto3.client('s3')
+buckets = s3_client.list_buckets()
+```
+
+Even if you're forced to use long-lived IAM user credentials, export the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables rather than passing them into the `boto3.client()` call. This keeps your code leaner and more portable. 
+
+One important caveat: when using an assumed role to perform operations, you’ll need to code the solution differently. That’s outside the scope of this document.
+
 # Troubleshooting
 
 You can run `aws configure list` to see information about your current configuration (thanks [Tucker](https://github.com/TuckerWarlock)!). Example:
@@ -143,12 +152,13 @@ $ aws configure  list
 
 ```
 
-Don't be afraid to `rm ~/.aws/sso/cache/*.json` if you're seeing weird behavior.
+Don't be afraid to `rm ~/.aws/sso/cache/*.json` if you're seeing weird behavior. These files are JWTs used to retrieve temporary credentials ([source](https://repost.aws/knowledge-center/sso-temporary-credentials)).
 
 # Miscellaneous notes
 
-- The CLI uses a hex-encoded SHA1 hash of the sso_start_url to determine the file names in `~/.aws/sso/cache/*.json`
+- The CLI uses a hex-encoded SHA1 hash of the `sso_start_url` to determine the file names in `~/.aws/sso/cache/*.json`
   - [Source](https://github.com/aws/aws-sdk-go-v2/blob/d7a7f5a021d5f64882fc1e219bd12725d9b75d41/credentials/ssocreds/sso_cached_token.go#L21-L41)
 
 - I really like the [AWS SSO Containers](https://addons.mozilla.org/en-US/firefox/addon/aws-sso-containers/) Firefox extension for logging into multiple AWS accounts through Identity Center.
 
+- The actual credentials used to make AWS API calls are stored in `~/.aws/cli/cache/*.json`. The CLI will automatically refresh these as long as you haven't exceeded your session duration.
