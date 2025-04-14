@@ -1,7 +1,7 @@
 # aws-sso-config-guide
 An opinionated guide on how to set up your AWS config file for Identity Center.
 
-I've spent several years administering Identity Center and helping untangle AWS config files that make life harder than they need to be.
+I've spent several years administering Identity Center and helping untangle AWS config files that make life harder than it needs to be.
 
 Take the suggestions in this guide as just that: suggestions. If a different approach works better for your workflow, great! I'd be interested to hear about it. 
 
