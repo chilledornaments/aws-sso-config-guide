@@ -112,7 +112,7 @@ One of the first things I do in the morning is run `awssso` in my terminal and a
 
 Once you've logged into AWS via `aws sso login --sso-session <sso-session name>` (or an alias for this if you've followed this guide), changing profiles is as simple as `export AWS_PROFILE=bar`. If using the CLI, you can also pass the `--profile` option, e.g. `--profile bar`. That said, I suggest making a habit of using the `AWS_PROFILE` environment variable because it's portable between the CLI and SDKs, whereas `--profile` is specific to the CLI. 
 
-Given the below profile, you can `export AWS_PROFILE=xyz-admin` and `export AWS_PROFILE=abc-read`.
+Given the below config file, you can `export AWS_PROFILE=xyz-admin` and `export AWS_PROFILE=abc-read`.
 
 
 ```ini
