@@ -142,8 +142,6 @@ All AWS SDKs use the same [credential provider chain](https://docs.aws.amazon.co
 
 For local development, rely on the `AWS_PROFILE` environment variable. This in conjunction with SSO sessions makes it extremely simple to authenticate to AWS and change roles. Avoid setting environment variables for access keys as much as possible.
 
-For developing with Docker, mount your user’s `~/.aws` directory into the container user’s home path. For example: `docker run -e AWS_PROFILE=xyz-admin --rm -it -v ~/.aws:/root/.aws amazon/aws-cli` 
-
 Applications rely entirely on the credential provider chain to retrieve credentials. Doing so allows this code to work anywhere:
 
 
@@ -158,6 +156,10 @@ buckets = s3_client.list_buckets()
 Even if you're forced to use long-lived IAM user credentials, export the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables rather than passing them into the `boto3.client()` call. This keeps your code leaner and more portable. 
 
 One important caveat: when using an assumed role to perform operations, you’ll need to code the solution differently. That’s outside the scope of this document.
+
+### Docker
+
+For developing with Docker, mount your user’s `~/.aws` directory into the container user’s home path. For example: `docker run -e AWS_PROFILE=xyz-admin --rm -it -v ~/.aws:/root/.aws amazon/aws-cli` 
 
 # Troubleshooting
 
